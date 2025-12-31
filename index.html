@@ -2,49 +2,55 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvest Dash Mobile</title>
+    <title>Harvest Dash</title>
     <style>
         body { margin: 0; overflow: hidden; background: #87CEEB; font-family: sans-serif; touch-action: manipulation; }
-        canvas { display: block; background: #87CEEB;}
-        #ui { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 1px 1px 2px #000; pointer-events: none; }
-        .btn { position: absolute; bottom: 20px; width: 80px; height: 80px; background: rgba(255,255,255,0.3); border: 2px solid white; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        #jumpBtn { left: 20px; }
-        #sickleBtn { right: 20px; background: rgba(255, 153, 51, 0.5); }
+        canvas { display: block; background: linear-gradient(#87CEEB, #f4d03f); }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px #000; pointer-events: none; font-size: 20px; }
+        .controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-around; }
+        .btn { width: 80px; height: 80px; background: rgba(255,255,255,0.4); border: 3px solid white; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="ui">Score: <span id="score">0</span></div>
-    <div id="jumpBtn" class="btn">JUMP</div>
-    <div id="sickleBtn" class="btn">SWIPE</div>
+    <div class="controls">
+        <div id="jumpBtn" class="btn">JUMP</div>
+        <div id="sickleBtn" class="btn" style="background: rgba(255,153,51,0.6)">SWIPE</div>
+    </div>
     <canvas id="gameCanvas"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        let score = 0, gameActive = true, sickle = 0, player = {x:50, y:canvas.height-120, w:40, h:70, dy:0};
-        let obstacles = [];
-        function spawn() { if(gameActive) { obstacles.push({x:canvas.width, y:canvas.height-100, w:30, h:50}); setTimeout(spawn, 1500); } }
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let score = 0, gameActive = true, sickle = 0, obstacles = [];
+        let player = {x: 50, y: canvas.height-130, w: 40, h: 80, dy: 0};
+
+        function spawn() { if(gameActive) { obstacles.push({x:canvas.width, y:canvas.height-100, w:40, h:50}); setTimeout(spawn, 1200 + Math.random()*1000); }}
+        
         function draw() {
             if(!gameActive) return;
             ctx.clearRect(0,0,canvas.width, canvas.height);
-            ctx.fillStyle = "#5d4037"; ctx.fillRect(0, canvas.height-50, canvas.width, 50);
+            ctx.fillStyle = "#5d4037"; ctx.fillRect(0, canvas.height-50, canvas.width, 50); // Ground
+            
             player.dy += 0.8; player.y += player.dy;
-            if(player.y > canvas.height-120) { player.y = canvas.height-120; player.dy = 0; }
-            ctx.fillStyle = "#FF9933"; ctx.fillRect(player.x, player.y, player.w, player.h);
-            if(sickle > 0) { ctx.strokeStyle = "white"; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(player.x+50, player.y+35, 30, 0, Math.PI); ctx.stroke(); sickle--; }
+            if(player.y > canvas.height-130) { player.y = canvas.height-130; player.dy = 0; }
+            
+            ctx.fillStyle = "#FF9933"; ctx.fillRect(player.x, player.y, player.w, player.h); // Player
+            if(sickle > 0) { ctx.strokeStyle = "white"; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(player.x+50, player.y+40, 35, 0, Math.PI); ctx.stroke(); sickle--; }
+
             obstacles.forEach((o, i) => {
-                o.x -= 6; ctx.fillStyle = "red"; ctx.fillRect(o.x, o.y, o.w, o.h);
+                o.x -= 7; ctx.fillStyle = "#2c3e50"; ctx.fillRect(o.x, o.y, o.w, o.h);
                 if(player.x < o.x + o.w && player.x + player.w > o.x && player.y < o.y + o.h && player.y + player.h > o.y) {
-                    if(sickle > 0) { obstacles.splice(i, 1); score += 5; } else { gameActive = false; alert("Game Over! Score: " + score); location.reload(); }
+                    if(sickle > 0) { obstacles.splice(i, 1); score += 5; } 
+                    else { gameActive = false; alert("Chase Interrupted! Score: " + score); location.reload(); }
                 }
-                if(o.x < -30) { obstacles.splice(i,1); score++; }
+                if(o.x < -40) { obstacles.splice(i,1); score++; }
             });
             document.getElementById('score').innerText = score;
             requestAnimationFrame(draw);
         }
-        document.getElementById('jumpBtn').ontouchstart = () => { if(player.y >= canvas.height-120) player.dy = -15; };
-        document.getElementById('sickleBtn').ontouchstart = () => { sickle = 20; };
+        document.getElementById('jumpBtn').ontouchstart = (e) => { e.preventDefault(); if(player.y >= canvas.height-130) player.dy = -16; };
+        document.getElementById('sickleBtn').ontouchstart = (e) => { e.preventDefault(); sickle = 20; };
         spawn(); draw();
     </script>
 </body>
